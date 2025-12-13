@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <math.h>
+#include <string.h>
 
 #define BUFFSIZE 100
 
@@ -20,6 +22,11 @@ void ungetch(int c) {
 }
 
 #define NUMBER '0'
+#define SIN -20
+#define COS -21
+#define TAN -22
+#define EXP -23
+#define POW -24
 
 int getop(char s[]) {
   int i=0, c;
@@ -28,8 +35,28 @@ int getop(char s[]) {
 
   s[1] = '\0';
 
-  if (!isdigit(c) && c != '.') { // operator
+  if (!isdigit(c) && c != '.' && !isalpha(c)) { // operator
     return c;
+  }
+
+  if (isalpha(c)) {
+    while (isalpha(s[++i] = c = getch())) {}
+    s[++i] = '\0';
+    if (c != EOF) {
+      ungetch(c);
+    }
+
+    if (!strcmp(s, "sin") || !strcmp(s, "sin\n")) {
+      return SIN;
+    } else if (!strcmp(s, "cos") || !strcmp(s, "cos\n")) {
+      return COS;
+    } else if (!strcmp(s, "tan") || !strcmp(s, "tan\n")) {
+      return TAN;
+    } else if (!strcmp(s, "exp") || !strcmp(s, "exp\n")) {
+      return EXP;
+    } else if (!strcmp(s, "pow") || !strcmp(s, "pow\n")) {
+      return POW;
+    }
   }
 
   if (isdigit(c)) { // num
@@ -45,30 +72,6 @@ int getop(char s[]) {
     ungetch(c);
   }
   return NUMBER;
-}
-
-double tofloat(char s[]) {
-  double val, power;
-  int i, sign;
-
-  for (i = 0; isspace(s[i]); i++) {} // skip whitespace
-  
-  sign = (s[i] == '-') ? -1 : 1;
-
-  if (s[i] == '+' || s[i] == '-') { i++; }
-
-  for (val = 0.0; isdigit(s[i]); i++) {
-    val = 10.0 * val + (s[i] - '0');
-  }
-
-  if (s[i] == '.') { i++; }
-
-  for (power = 1.0; isdigit(s[i]); i++) {
-    val = 10.0 * val + (s[i] - '0');
-    power *= 10.0;
-  }
-  
-  return sign * val / power;
 }
 
 #define MAXVAL 100
@@ -93,6 +96,10 @@ double pop(void) {
   }
 }
 
+double deg2rad(double deg) {
+  return deg * M_PI / 180;
+}
+
 #define MAXOP 100
 
 int main() {
@@ -103,7 +110,23 @@ int main() {
   while ((type = getop(s)) != EOF) {
     switch (type) {
       case NUMBER:
-        push(tofloat(s));
+        push(atof(s));
+        break;
+      case SIN:
+        push(sin(deg2rad(pop())));
+        break;
+      case COS:
+        push(cos(deg2rad(pop())));
+        break;
+      case TAN:
+        push(tan(deg2rad(pop())));
+        break;
+      case EXP:
+        push(exp(pop()));
+        break;
+      case POW:
+        op2 = pop();
+        push(pow(pop(), op2));
         break;
       case '+':
         push(pop() + pop());
