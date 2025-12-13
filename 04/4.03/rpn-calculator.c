@@ -22,11 +22,13 @@ void ungetch(int c) {
 }
 
 #define NUMBER '0'
-#define SIN -20
-#define COS -21
-#define TAN -22
-#define EXP -23
-#define POW -24
+#define SIN -30
+#define COS -31
+#define TAN -32
+#define EXP -33
+#define POW -34
+#define ASG -35
+#define VAR -36
 
 int getop(char s[]) {
   int i=0, c;
@@ -34,6 +36,16 @@ int getop(char s[]) {
   while ((s[0] = c = getch()) == ' ' || c == '\t') {}
 
   s[1] = '\0';
+
+  if (isalpha(c) && isupper(c)) {
+    s[0] = c;
+    s[1] = '\0';
+    return VAR;
+  }
+
+  if (c == '=') {
+    return ASG;
+  }
 
   if (!isdigit(c) && c != '.' && !isalpha(c)) { // operator
     return c;
@@ -102,15 +114,29 @@ double deg2rad(double deg) {
 
 #define MAXOP 100
 
+double vars[26];
+int lastVar = -1;
+
 int main() {
   int type;
-  double op2;
+  double op2, op1;
   char s[MAXOP];
 
   while ((type = getop(s)) != EOF) {
     switch (type) {
       case NUMBER:
         push(atof(s));
+        break;
+      case VAR:
+        lastVar = s[0] - 'A';
+        push(vars[lastVar]);
+        break;
+      case ASG:
+        if (lastVar < 0) {
+          printf("ERROR: no variable to assign\n");
+        } else {
+          vars[lastVar] = pop();
+        }
         break;
       case SIN:
         push(sin(deg2rad(pop())));
